@@ -1,0 +1,11 @@
+{
+    "vetur.format.defaultFormatter.html": "prettyhtml",
+    "vetur.format.defaultFormatterOptions": {
+      "js-beautify-html": {},
+      "prettyhtml": {
+        "printWidth": 100,
+        "singleQuote": false,
+        "wrapAttributes": true
+      }
+    }
+}

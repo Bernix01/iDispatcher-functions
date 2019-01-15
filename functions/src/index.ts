@@ -23,11 +23,39 @@ export const deactivateUser = functions.auth.user().onDelete(async user => {
     .update({ active: false });
 });
 
-export const report = functions.https.onRequest((req, res) => {
-  res.send("reported!");
-});
+export const report = functions.https.onCall(
+  async (data: { duid: string; action: string }, context) => {
+    const { duid, action } = data;
+    const uid = context.auth.uid;
+    const userDoc = await db
+      .collection("users")
+      .doc(uid)
+      .get();
+    const user = userDoc.data();
+    const deviceUID = duid;
+    const dRef = await db.collection("devices").doc(deviceUID);
+    await dRef.update({ last_signal: new Date() });
+    const d = await dRef.get();
+    const device = d.data();
+    console.info(device);
+    const f = await db
+      .collection("formulas")
+      .doc(device.formula)
+      .get();
+    const formula = f.data();
+    const reportData = {
+      user,
+      device,
+      formula,
+      action: action,
+      when: new Date()
+    };
+    await db.collection("reports").add(reportData);
+    return true;
+  }
+);
 
-export const device = functions.https.onCall(async (data, context) => {
+export const fetchDevice = functions.https.onCall(async (data, context) => {
   const deviceUID = data.duid;
   const d = await db
     .collection("devices")
